@@ -12,7 +12,7 @@ using namespace boost;
 
 MODULE = Graph::VF2		PACKAGE = Graph::VF2
 
-void
+SV *
 _vf2(vertices1, edges1, vertices2, edges2)
         SV * vertices1
         SV * edges1
@@ -47,3 +47,12 @@ _vf2(vertices1, edges1, vertices2, edges2)
         // Print out all subgraph isomorphism mappings between graph1 and graph2.
         // Vertices and edges are assumed to be always equivalent.
         vf2_subgraph_iso(graph1, graph2, callback);
+
+        AV* map = newAV();
+
+        for (int n : correspondence)
+            av_push( map, newSViv( n ) );
+
+        RETVAL = newRV_noinc( (SV*)map );
+    OUTPUT:
+        RETVAL

@@ -24,10 +24,11 @@ sub vf2
     my @vertices2 = $g2->vertices;
     my %vertices2 = map { $vertices2[$_] => $_ } 0..$#vertices2;
 
-    _vf2( \@vertices1,
-          [ map { [ $vertices1{$_->[0]}, $vertices1{$_->[1]} ] } $g1->edges ],
-          \@vertices2,
-          [ map { [ $vertices2{$_->[0]}, $vertices2{$_->[1]} ] } $g2->edges ] );
+    my $correspondence =
+        _vf2( \@vertices1,
+              [ map { [ $vertices1{$_->[0]}, $vertices1{$_->[1]} ] } $g1->edges ],
+              \@vertices2,
+              [ map { [ $vertices2{$_->[0]}, $vertices2{$_->[1]} ] } $g2->edges ] );
 }
 
 1;

@@ -11,6 +11,7 @@ $g1->add_cycle( 1..3 );
 
 $g2->add_cycle( 1..10 );
 $g2->add_cycle( 1..3 );
+$g2->add_cycle( 6..8 );
 
 vf2( $g1, $g2 );
 
