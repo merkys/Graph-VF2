@@ -19,7 +19,7 @@ _vf2(vertices1, edges1, vertices2, edges2)
         typedef adjacency_list< setS, vecS, bidirectionalS > graph_type;
 
         // Build graph1
-        int num_vertices1 = 8;
+        int num_vertices1 = av_top_index((AV*) SvRV(vertices1));
         graph_type graph1(num_vertices1);
         add_edge(0, 6, graph1);
         add_edge(0, 7, graph1);
@@ -31,7 +31,7 @@ _vf2(vertices1, edges1, vertices2, edges2)
         add_edge(3, 4, graph1);
 
         // Build graph2
-        int num_vertices2 = 9;
+        int num_vertices2 = av_top_index((AV*) SvRV(vertices2));
         graph_type graph2(num_vertices2);
         add_edge(0, 6, graph2);
         add_edge(0, 8, graph2);
