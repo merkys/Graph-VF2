@@ -19,30 +19,22 @@ _vf2(vertices1, edges1, vertices2, edges2)
         typedef adjacency_list< setS, vecS, bidirectionalS > graph_type;
 
         // Build graph1
-        int num_vertices1 = av_top_index((AV*) SvRV(vertices1));
+        int num_vertices1 = av_top_index((AV*) SvRV(vertices1)) + 1;
         graph_type graph1(num_vertices1);
-        add_edge(0, 6, graph1);
-        add_edge(0, 7, graph1);
-        add_edge(1, 5, graph1);
-        add_edge(1, 7, graph1);
-        add_edge(2, 4, graph1);
-        add_edge(2, 5, graph1);
-        add_edge(2, 6, graph1);
-        add_edge(3, 4, graph1);
+        for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges1)); i++) {
+            AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges1), i, 0 )[0] );
+            add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
+                      SvIV( av_fetch( edge, 1, 0 )[0] ), graph1 );
+        }
 
         // Build graph2
-        int num_vertices2 = av_top_index((AV*) SvRV(vertices2));
+        int num_vertices2 = av_top_index((AV*) SvRV(vertices2)) + 1;
         graph_type graph2(num_vertices2);
-        add_edge(0, 6, graph2);
-        add_edge(0, 8, graph2);
-        add_edge(1, 5, graph2);
-        add_edge(1, 7, graph2);
-        add_edge(2, 4, graph2);
-        add_edge(2, 7, graph2);
-        add_edge(2, 8, graph2);
-        add_edge(3, 4, graph2);
-        add_edge(3, 5, graph2);
-        add_edge(3, 6, graph2);
+        for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges2)); i++) {
+            AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges2), i, 0 )[0] );
+            add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
+                      SvIV( av_fetch( edge, 1, 0 )[0] ), graph2 );
+        }
 
         // Create callback to print mappings
         vf2_print_callback< graph_type, graph_type > callback(graph1, graph2);

@@ -18,7 +18,16 @@ XSLoader::load('Graph::VF2', $VERSION);
 sub vf2
 {
     my( $g1, $g2 ) = @_;
-    _vf2( [ $g1->vertices ], [ $g1->edges ], [ $g2->vertices ], [ $g2->edges ] );
+
+    my @vertices1 = $g1->vertices;
+    my %vertices1 = map { $vertices1[$_] => $_ } 0..$#vertices1;
+    my @vertices2 = $g2->vertices;
+    my %vertices2 = map { $vertices2[$_] => $_ } 0..$#vertices2;
+
+    _vf2( \@vertices1,
+          [ map { [ $vertices1{$_->[0]}, $vertices1{$_->[1]} ] } $g1->edges ],
+          \@vertices2,
+          [ map { [ $vertices2{$_->[0]}, $vertices2{$_->[1]} ] } $g2->edges ] );
 }
 
 1;

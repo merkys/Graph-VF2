@@ -9,8 +9,8 @@ my $g2 = Graph::Undirected->new;
 
 $g1->add_cycle( 1..3 );
 
-$g2->add_cycle( 1..4 );
-$g2->add_edge( 1, 3 );
+$g2->add_cycle( 1..10 );
+$g2->add_cycle( 1..3 );
 
 vf2( $g1, $g2 );
 
