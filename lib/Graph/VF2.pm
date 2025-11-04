@@ -29,6 +29,14 @@ sub vf2
               [ map { [ $vertices1{$_->[0]}, $vertices1{$_->[1]} ] } $g1->edges ],
               \@vertices2,
               [ map { [ $vertices2{$_->[0]}, $vertices2{$_->[1]} ] } $g2->edges ] );
+
+    my @matches;
+    while (@$correspondence) {
+        push @matches, [ map { [ $vertices1{2 * $_}, $vertices2{2 * $_ + 1} ] } 0..$#vertices1 ];
+        pop @$correspondence for 1..(2 * @vertices1);
+    }
+
+    return @matches;
 }
 
 1;
