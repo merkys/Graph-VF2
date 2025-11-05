@@ -10,12 +10,14 @@ using namespace boost;
 
 // Binary function object that returns true if the values for item1
 // in property_map1 and item2 in property_map2 are equivalent.
-template <typename PropertyMapFirst, typename PropertyMapSecond>
+template <typename PropertyMapFirst, typename PropertyMapSecond, typename CorrespondenceMap>
 struct property_map_perl {
     property_map_perl(const PropertyMapFirst property_map1,
-                      const PropertyMapSecond property_map2) :
+                      const PropertyMapSecond property_map2,
+                      const CorrespondenceMap corr_map) :
       m_property_map1(property_map1),
-      m_property_map2(property_map2) { }
+      m_property_map2(property_map2),
+      m_corr_map(corr_map) { }
 
     template <typename ItemFirst,
               typename ItemSecond>
@@ -24,19 +26,21 @@ struct property_map_perl {
     }
 
     private:
-    const PropertyMapFirst m_property_map1;
-    const PropertyMapSecond m_property_map2;
+        const PropertyMapFirst m_property_map1;
+        const PropertyMapSecond m_property_map2;
+        const CorrespondenceMap m_corr_map;
 };
 
 // Returns a property_map_equivalent object that compares the values
 // of property_map1 and property_map2.
-template <typename PropertyMapFirst, typename PropertyMapSecond>
-property_map_perl<PropertyMapFirst, PropertyMapSecond>
+template <typename PropertyMapFirst, typename PropertyMapSecond, typename CorrespondenceMap>
+property_map_perl<PropertyMapFirst, PropertyMapSecond, CorrespondenceMap>
 make_property_map_perl
 (const PropertyMapFirst property_map1,
-const PropertyMapSecond property_map2) {
-    return (property_map_perl<PropertyMapFirst, PropertyMapSecond>
-            (property_map1, property_map2));
+ const PropertyMapSecond property_map2,
+ const CorrespondenceMap corr_map) {
+    return (property_map_perl<PropertyMapFirst, PropertyMapSecond, CorrespondenceMap>
+            (property_map1, property_map2, corr_map));
 }
 
 template <typename Graph1, typename Graph2>
@@ -64,11 +68,12 @@ struct print_callback {
 MODULE = Graph::VF2		PACKAGE = Graph::VF2
 
 SV *
-_vf2(vertices1, edges1, vertices2, edges2)
+_vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         SV * vertices1
         SV * edges1
         SV * vertices2
         SV * edges2
+        SV * vertex_map
     CODE:
         typedef property< edge_name_t, SV* > edge_property;
         typedef property< vertex_name_t, SV*, property< vertex_index_t, int > > vertex_property;
@@ -98,11 +103,13 @@ _vf2(vertices1, edges1, vertices2, edges2)
                       SvIV( av_fetch( edge, 1, 0 )[0] ), graph2 );
         }
 
+        bool corr_map[5][5];
+
         // create predicates - TODO: unused
         auto vertex_comp = make_property_map_perl(
-            get(vertex_name, graph1), get(vertex_name, graph2));
+            get(vertex_name, graph1), get(vertex_name, graph2), corr_map);
         auto edge_comp = make_property_map_perl(
-            get(edge_name, graph1), get(edge_name, graph2));
+            get(edge_name, graph1), get(edge_name, graph2), corr_map);
 
         std::vector<int> correspondence;
 
