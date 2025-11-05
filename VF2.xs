@@ -19,7 +19,7 @@ _vf2(vertices1, edges1, vertices2, edges2)
         SV * vertices2
         SV * edges2
     CODE:
-        typedef adjacency_list< setS, vecS, bidirectionalS > graph_type;
+        typedef adjacency_list< setS, vecS, undirectedS > graph_type;
 
         // Build graph1
         int num_vertices1 = av_top_index((AV*) SvRV(vertices1)) + 1;

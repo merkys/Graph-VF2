@@ -3,7 +3,7 @@ use warnings;
 
 use Graph::Undirected;
 use Graph::VF2 qw( vf2 );
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 my $g1 = Graph::Undirected->new;
 
@@ -30,3 +30,11 @@ $g2->add_edge(3, 5);
 $g2->add_edge(3, 6);
 
 is scalar vf2( $g1, $g2 ), 8;
+
+my $g3 = Graph::Undirected->new;
+
+for my $edge ($g2->edges) {
+    $g3->add_edge(8 - $edge->[0], 8 - $edge->[1]);
+}
+
+is scalar vf2( $g1, $g3 ), 8;
