@@ -8,6 +8,37 @@ using namespace boost;
 #include "perl.h"
 #include "XSUB.h"
 
+// Binary function object that returns true if the values for item1
+// in property_map1 and item2 in property_map2 are equivalent.
+template <typename PropertyMapFirst, typename PropertyMapSecond>
+struct property_map_perl {
+    property_map_perl(const PropertyMapFirst property_map1,
+                      const PropertyMapSecond property_map2) :
+      m_property_map1(property_map1),
+      m_property_map2(property_map2) { }
+
+    template <typename ItemFirst,
+              typename ItemSecond>
+    bool operator()(const ItemFirst item1, const ItemSecond item2) {
+      return (get(m_property_map1, item1) == get(m_property_map2, item2));
+    }
+
+    private:
+    const PropertyMapFirst m_property_map1;
+    const PropertyMapSecond m_property_map2;
+};
+
+// Returns a property_map_equivalent object that compares the values
+// of property_map1 and property_map2.
+template <typename PropertyMapFirst, typename PropertyMapSecond>
+property_map_perl<PropertyMapFirst, PropertyMapSecond>
+make_property_map_perl
+(const PropertyMapFirst property_map1,
+const PropertyMapSecond property_map2) {
+    return (property_map_perl<PropertyMapFirst, PropertyMapSecond>
+            (property_map1, property_map2));
+}
+
 template <typename Graph1, typename Graph2>
 struct print_callback {
     print_callback(const Graph1& graph1, const Graph2& graph2, std::vector<int>& correspondence)
@@ -39,7 +70,9 @@ _vf2(vertices1, edges1, vertices2, edges2)
         SV * vertices2
         SV * edges2
     CODE:
-        typedef adjacency_list< setS, vecS, undirectedS > graph_type;
+        typedef property< edge_name_t, SV* > edge_property;
+        typedef property< vertex_name_t, SV*, property< vertex_index_t, int > > vertex_property;
+        typedef adjacency_list< setS, vecS, undirectedS, vertex_property, edge_property > graph_type;
 
         // Build graph1
         int num_vertices1 = av_top_index((AV*) SvRV(vertices1)) + 1;
@@ -59,6 +92,12 @@ _vf2(vertices1, edges1, vertices2, edges2)
                       SvIV( av_fetch( edge, 1, 0 )[0] ), graph2 );
         }
 
+        // create predicates
+        auto vertex_comp = make_property_map_perl(
+            get(vertex_name, graph1), get(vertex_name, graph2));
+        auto edge_comp = make_property_map_perl(
+            get(edge_name, graph1), get(edge_name, graph2));
+
         std::vector<int> correspondence;
 
         // Create callback to print mappings
@@ -66,7 +105,8 @@ _vf2(vertices1, edges1, vertices2, edges2)
 
         // Print out all subgraph isomorphism mappings between graph1 and graph2.
         // Vertices and edges are assumed to be always equivalent.
-        vf2_subgraph_iso(graph1, graph2, callback);
+        vf2_subgraph_iso(graph1, graph2, callback, vertex_order_by_mult(graph1),
+            edges_equivalent(edge_comp).vertices_equivalent(vertex_comp));
 
         AV* map = newAV();
 
