@@ -3,6 +3,8 @@ package Graph::VF2;
 use strict;
 use warnings;
 
+use Graph::Undirected;
+
 require Exporter;
 our @ISA = qw( Exporter );
 our @EXPORT_OK = qw(
@@ -18,6 +20,9 @@ XSLoader::load('Graph::VF2', $VERSION);
 sub vf2
 {
     my( $g1, $g2 ) = @_;
+
+    die 'input graphs must be undirected'
+        unless $g1->isa( Graph::Undirected:: ) && $g2->isa( Graph::Undirected:: );
 
     my @vertices1 = $g1->vertices;
     my %vertices1 = map { $vertices1[$_] => $_ } 0..$#vertices1;
