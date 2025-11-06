@@ -29,7 +29,7 @@ sub vf2
     my @vertices2 = $g2->vertices;
     my %vertices2 = map { $vertices2[$_] => $_ } 0..$#vertices2;
 
-    my $map = [ [ ( 1 ) x @vertices2 ] x @vertices1 ];
+    my $map = [ ( [ ( 1 ) x @vertices2 ] ) x @vertices1 ];
 
     my $correspondence =
         _vf2( \@vertices1,

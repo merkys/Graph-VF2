@@ -106,8 +106,9 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         bool** corr_map = (bool**)calloc(num_vertices1, sizeof(bool*));
         for (int i = 0; i < num_vertices1; ++i) {
             corr_map[i] = (bool*)calloc(num_vertices2, sizeof(bool));
+            AV * line = (AV*) SvRV( av_fetch( (AV*) SvRV(vertex_map), i, 0 )[0] );
             for (int j = 0; j < num_vertices2; ++j) {
-                corr_map[i][j] = true;
+                corr_map[i][j] = SvIV( av_fetch( line, j, 0 )[0] );
             }
         }
 
