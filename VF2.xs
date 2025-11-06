@@ -22,7 +22,7 @@ struct property_map_perl {
     template <typename ItemFirst,
               typename ItemSecond>
     bool operator()(const ItemFirst item1, const ItemSecond item2) {
-      return (m_corr_map[get(m_property_map1, item1),get(m_property_map2, item2)]);
+      return (m_corr_map[item1][item2]);
     }
 
     private:
@@ -106,6 +106,9 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         bool** corr_map = (bool**)calloc(num_vertices1, sizeof(bool*));
         for (int i = 0; i < num_vertices1; ++i) {
             corr_map[i] = (bool*)calloc(num_vertices2, sizeof(bool));
+            for (int j = 0; j < num_vertices2; ++j) {
+                corr_map[i][j] = true;
+            }
         }
 
         // create predicates - TODO: unused
@@ -122,7 +125,7 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         // Print out all subgraph isomorphism mappings between graph1 and graph2.
         // Vertices and edges are assumed to be always equivalent.
         vf2_subgraph_iso(graph1, graph2, callback, vertex_order_by_mult(graph1),
-            edges_equivalent(always_equivalent()).vertices_equivalent(always_equivalent()));
+            edges_equivalent(always_equivalent()).vertices_equivalent(vertex_comp));
 
         for (int i = 0; i < num_vertices1; ++i) {
             free(corr_map[i]);
