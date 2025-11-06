@@ -112,9 +112,9 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
             }
         }
 
-        // create predicates - TODO: unused
         auto vertex_comp = make_property_map_perl(
             get(vertex_name, graph1), get(vertex_name, graph2), corr_map);
+        // Edge predicate is unused - TODO
         auto edge_comp = make_property_map_perl(
             get(edge_name, graph1), get(edge_name, graph2), corr_map);
 

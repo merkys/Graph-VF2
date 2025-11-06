@@ -36,7 +36,7 @@ sub vf2
 
     my $map = [];
     for my $vertex (@vertices1) {
-        push @$map, [ map { $vertex_correspondence_sub->($vertex, $_) } @vertices2 ];
+        push @$map, [ map { int $vertex_correspondence_sub->($vertex, $_) } @vertices2 ];
     }
 
     my $correspondence =

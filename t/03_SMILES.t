@@ -3,7 +3,7 @@ use warnings;
 
 use Chemistry::OpenSMILES::Parser;
 use Graph::VF2 qw( vf2 );
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 my $parser = Chemistry::OpenSMILES::Parser->new;
 
@@ -31,3 +31,10 @@ is scalar vf2( $benzene, $phenanthrene, { vertex_correspondence_sub => $vertex_c
 
 is scalar vf2( $benzene, $phenanthroline ), 36;
 is scalar vf2( $benzene, $phenanthrene ), 36;
+
+my $any_vertex = Graph::Undirected->new;
+$any_vertex->add_vertex( 0 );
+
+$vertex_correspondence_sub = sub { $_[1]->{symbol} =~ /^[CN]$/i };
+
+is scalar vf2( $any_vertex, $phenanthroline, { vertex_correspondence_sub => $vertex_correspondence_sub } ), 14;
