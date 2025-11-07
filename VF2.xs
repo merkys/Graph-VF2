@@ -54,12 +54,13 @@ struct print_callback {
 MODULE = Graph::VF2		PACKAGE = Graph::VF2
 
 SV *
-_vf2(vertices1, edges1, vertices2, edges2, vertex_map)
+_vf2(vertices1, edges1, vertices2, edges2, vertex_map, edge_map)
         SV * vertices1
         SV * edges1
         SV * vertices2
         SV * edges2
         SV * vertex_map
+        SV * edge_map
     CODE:
         typedef property< edge_name_t, SV* > edge_property;
         typedef property< vertex_name_t, SV*, property< vertex_index_t, int > > vertex_property;
@@ -67,11 +68,12 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
 
         // Build graph1
         int num_vertices1 = av_top_index((AV*) SvRV(vertices1)) + 1;
+        int num_edges1 = av_top_index((AV*) SvRV(edges1)) + 1;
         graph_type graph1;
         for (ssize_t i = 0; i < num_vertices1; i++) {
             add_vertex( vertex_property(newSViv(1)), graph1 );
         }
-        for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges1)); i++) {
+        for (ssize_t i = 0; i < num_edges1; i++) {
             AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges1), i, 0 )[0] );
             add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
                       SvIV( av_fetch( edge, 1, 0 )[0] ), graph1 );
@@ -79,16 +81,18 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
 
         // Build graph2
         int num_vertices2 = av_top_index((AV*) SvRV(vertices2)) + 1;
+        int num_edges2 = av_top_index((AV*) SvRV(edges2)) + 1;
         graph_type graph2;
         for (ssize_t i = 0; i < num_vertices2; i++) {
             add_vertex( vertex_property(newSViv(1)), graph2 );
         }
-        for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges2)); i++) {
+        for (ssize_t i = 0; i < num_edges2; i++) {
             AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges2), i, 0 )[0] );
             add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
                       SvIV( av_fetch( edge, 1, 0 )[0] ), graph2 );
         }
 
+        // Build the vertex correspondence map
         bool** corr_map = (bool**)calloc(num_vertices1, sizeof(bool*));
         for (int i = 0; i < num_vertices1; ++i) {
             corr_map[i] = (bool*)calloc(num_vertices2, sizeof(bool));
@@ -98,9 +102,18 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
             }
         }
 
+        // Build the edge correspondence map
+        bool** corr_map2 = (bool**)calloc(num_edges1, sizeof(bool*));
+        for (int i = 0; i < num_edges1; ++i) {
+            corr_map2[i] = (bool*)calloc(num_edges2, sizeof(bool));
+            AV * line = (AV*) SvRV( av_fetch( (AV*) SvRV(edge_map), i, 0 )[0] );
+            for (int j = 0; j < num_edges2; ++j) {
+                corr_map2[i][j] = SvIV( av_fetch( line, j, 0 )[0] );
+            }
+        }
+
         auto vertex_comp = make_property_map_perl(corr_map);
-        // Edge predicate is unused - TODO
-        auto edge_comp = make_property_map_perl(corr_map);
+        auto edge_comp = make_property_map_perl(corr_map2);
 
         std::vector<int> correspondence;
 
@@ -110,12 +123,16 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         // Print out all subgraph isomorphism mappings between graph1 and graph2.
         // Vertices and edges are assumed to be always equivalent.
         vf2_subgraph_iso(graph1, graph2, callback, vertex_order_by_mult(graph1),
-            edges_equivalent(always_equivalent()).vertices_equivalent(vertex_comp));
+            edges_equivalent(edge_comp).vertices_equivalent(vertex_comp));
 
         for (int i = 0; i < num_vertices1; ++i) {
             free(corr_map[i]);
         }
         free(corr_map);
+        for (int i = 0; i < num_edges1; ++i) {
+            free(corr_map2[i]);
+        }
+        free(corr_map2);
 
         AV* map = newAV();
 
