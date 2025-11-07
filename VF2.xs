@@ -8,39 +8,25 @@ using namespace boost;
 #include "perl.h"
 #include "XSUB.h"
 
-// Binary function object that returns true if the values for item1
-// in property_map1 and item2 in property_map2 are equivalent.
-template <typename PropertyMapFirst, typename PropertyMapSecond, typename CorrespondenceMap>
+template <typename CorrespondenceMap>
 struct property_map_perl {
-    property_map_perl(const PropertyMapFirst property_map1,
-                      const PropertyMapSecond property_map2,
-                      const CorrespondenceMap corr_map) :
-      m_property_map1(property_map1),
-      m_property_map2(property_map2),
-      m_corr_map(corr_map) { }
+    property_map_perl(const CorrespondenceMap corr_map) :
+        m_corr_map(corr_map) {}
 
-    template <typename ItemFirst,
-              typename ItemSecond>
+    template <typename ItemFirst, typename ItemSecond>
     bool operator()(const ItemFirst item1, const ItemSecond item2) {
-      return (m_corr_map[item1][item2]);
+        return (m_corr_map[item1][item2]);
     }
 
     private:
-        const PropertyMapFirst m_property_map1;
-        const PropertyMapSecond m_property_map2;
         const CorrespondenceMap m_corr_map;
 };
 
-// Returns a property_map_equivalent object that compares the values
-// of property_map1 and property_map2.
-template <typename PropertyMapFirst, typename PropertyMapSecond, typename CorrespondenceMap>
-property_map_perl<PropertyMapFirst, PropertyMapSecond, CorrespondenceMap>
+template <typename CorrespondenceMap>
+property_map_perl<CorrespondenceMap>
 make_property_map_perl
-(const PropertyMapFirst property_map1,
- const PropertyMapSecond property_map2,
- const CorrespondenceMap corr_map) {
-    return (property_map_perl<PropertyMapFirst, PropertyMapSecond, CorrespondenceMap>
-            (property_map1, property_map2, corr_map));
+(const CorrespondenceMap corr_map) {
+    return (property_map_perl<CorrespondenceMap>(corr_map));
 }
 
 template <typename Graph1, typename Graph2>
@@ -112,11 +98,9 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
             }
         }
 
-        auto vertex_comp = make_property_map_perl(
-            get(vertex_name, graph1), get(vertex_name, graph2), corr_map);
+        auto vertex_comp = make_property_map_perl(corr_map);
         // Edge predicate is unused - TODO
-        auto edge_comp = make_property_map_perl(
-            get(edge_name, graph1), get(edge_name, graph2), corr_map);
+        auto edge_comp = make_property_map_perl(corr_map);
 
         std::vector<int> correspondence;
 
