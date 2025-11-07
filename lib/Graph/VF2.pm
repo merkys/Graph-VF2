@@ -31,20 +31,17 @@ sub vf2
 
     my @vertices1 = $g1->vertices;
     my %vertices1 = map { $vertices1[$_] => $_ } 0..$#vertices1;
+    my @edges1    = map { [ $vertices1{$_->[0]}, $vertices1{$_->[1]} ] } $g1->edges;
     my @vertices2 = $g2->vertices;
     my %vertices2 = map { $vertices2[$_] => $_ } 0..$#vertices2;
+    my @edges2    = map { [ $vertices2{$_->[0]}, $vertices2{$_->[1]} ] } $g2->edges;
 
     my $map = [];
     for my $vertex (@vertices1) {
         push @$map, [ map { int $vertex_correspondence_sub->($vertex, $_) } @vertices2 ];
     }
 
-    my $correspondence =
-        _vf2( \@vertices1,
-              [ map { [ $vertices1{$_->[0]}, $vertices1{$_->[1]} ] } $g1->edges ],
-              \@vertices2,
-              [ map { [ $vertices2{$_->[0]}, $vertices2{$_->[1]} ] } $g2->edges ],
-              $map );
+    my $correspondence = _vf2( \@vertices1, \@edges1, \@vertices2, \@edges2, $map );
 
     my @matches;
     while (@$correspondence) {
