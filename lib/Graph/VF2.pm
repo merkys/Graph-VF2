@@ -45,8 +45,10 @@ sub vf2
 
     my @matches;
     while (@$correspondence) {
-        push @matches, [ map { [ $vertices1{2 * $_}, $vertices2{2 * $_ + 1} ] } 0..$#vertices1 ];
-        pop @$correspondence for 1..(2 * @vertices1);
+        push @matches, [ map { [ $vertices1[$correspondence->[2 * $_]],
+                                 $vertices2[$correspondence->[2 * $_ + 1]] ] }
+                             0..$#vertices1 ];
+        shift @$correspondence for 1..(2 * @vertices1);
     }
 
     return @matches;
