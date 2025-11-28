@@ -44,11 +44,10 @@ sub vf2
     my $correspondence = _vf2( \@vertices1, \@edges1, \@vertices2, \@edges2, $map );
 
     my @matches;
-    while (@$correspondence) {
-        push @matches, [ map { [ $vertices1[$correspondence->[2 * $_]],
-                                 $vertices2[$correspondence->[2 * $_ + 1]] ] }
+    while (my @match = splice @$correspondence, 0, 2 * @vertices1) {
+        push @matches, [ map { [ $vertices1[$match[2 * $_]],
+                                 $vertices2[$match[2 * $_ + 1]] ] }
                              0..$#vertices1 ];
-        shift @$correspondence for 1..(2 * @vertices1);
     }
 
     return @matches;
