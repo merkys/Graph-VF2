@@ -1,5 +1,27 @@
 package Graph::VF2;
 
+# ABSTRACT: VF2 subgraph isomorphism detection method for Perl Graph
+# VERSION
+
+=head1 NAME
+
+Graph::MoreUtils - VF2 subgraph isomorphism detection method for Perl Graph
+
+=head1 SYNOPSIS
+
+    use Graph::Undirected;
+    use Graph::VF2 qw( vf2 );
+
+    my $small = Graph::Undirected->new;
+    my $large = Graph::Undirected->new;
+
+    # Create graphs here
+
+    # Find all subgraphs of $small in $large:
+    my @matches = vf2( $small, $large );
+
+=cut
+
 use strict;
 use warnings;
 
@@ -10,9 +32,6 @@ our @ISA = qw( Exporter );
 our @EXPORT_OK = qw(
     vf2
 );
-
-# ABSTRACT: VF2 method for Perl Graph
-# VERSION
 
 require XSLoader;
 XSLoader::load('Graph::VF2', $VERSION);
@@ -52,5 +71,11 @@ sub vf2
 
     return @matches;
 }
+
+=head1 AUTHORS
+
+Andrius Merkys, E<lt>merkys@cpan.orgE<gt>
+
+=cut
 
 1;
