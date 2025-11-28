@@ -36,6 +36,31 @@ our @EXPORT_OK = qw(
 require XSLoader;
 XSLoader::load('Graph::VF2', $VERSION);
 
+=head1 METHODS
+
+=head2 C<vf2( $g1, $g2, $options )>
+
+Takes two L<Graph::Undirected> objects, C<$g1> and C<$g2> and returns an array of occurrences of C<$g1> in C<$g2>.
+Returned array consists of array references, each array reference describing one occurrence.
+In it, encoded as array references, is the list of pairwise vertex correspondences.
+First item in a pair is a vertex from C<$g1>, and second item being a vertex in C<$g2>.
+No attempt is made to collate isomorphic matches.
+Thus a search of N-element cycle graph in itself will produce 2 * N matches due to graph's symmetry.
+
+C<$options> is a hash reference of options with the following keys:
+
+=over
+
+=item C<vertex_correspondence_sub>
+
+A subroutine reference used to evaluate the equality of vertices, called with C<$v1> and C<$v2> from C<$g1> and C<$g2>, accordingly.
+Should return Perl true and false equivalents to signify match and non-match, accordingly.
+Unless provided, all vertices are treated as equal.
+
+=back
+
+=cut
+
 sub vf2
 {
     my( $g1, $g2, $options ) = @_;
