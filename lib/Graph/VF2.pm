@@ -10,7 +10,7 @@ Graph::MoreUtils - VF2 subgraph isomorphism detection method for Perl Graph
 =head1 SYNOPSIS
 
     use Graph::Undirected;
-    use Graph::VF2 qw( vf2 );
+    use Graph::VF2 qw( matches );
 
     my $small = Graph::Undirected->new;
     my $large = Graph::Undirected->new;
@@ -18,7 +18,7 @@ Graph::MoreUtils - VF2 subgraph isomorphism detection method for Perl Graph
     # Create graphs here
 
     # Find all subgraphs of $small in $large:
-    my @matches = vf2( $small, $large );
+    my @matches = matches( $small, $large );
 
 =cut
 
@@ -30,7 +30,7 @@ use Graph::Undirected;
 require Exporter;
 our @ISA = qw( Exporter );
 our @EXPORT_OK = qw(
-    vf2
+    matches
 );
 
 require XSLoader;
@@ -38,7 +38,7 @@ XSLoader::load('Graph::VF2', $VERSION);
 
 =head1 METHODS
 
-=head2 C<vf2( $g1, $g2, $options )>
+=head2 C<matches( $g1, $g2, $options )>
 
 Takes two L<Graph::Undirected> objects, C<$g1> and C<$g2> and returns an array of occurrences of C<$g1> in C<$g2>.
 Returned array consists of array references, each array reference describing one occurrence.
@@ -61,7 +61,7 @@ Unless provided, all vertices are treated as equal.
 
 =cut
 
-sub vf2
+sub matches
 {
     my( $g1, $g2, $options ) = @_;
 

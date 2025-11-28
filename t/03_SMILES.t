@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Chemistry::OpenSMILES::Parser;
-use Graph::VF2 qw( vf2 );
+use Graph::VF2 qw( matches );
 use Test::More tests => 7;
 
 my $parser = Chemistry::OpenSMILES::Parser->new;
@@ -18,23 +18,23 @@ my $vertex_correspondence_sub;
 
 $vertex_correspondence_sub = sub { ucfirst $_[0]->{symbol} eq ucfirst $_[1]->{symbol} };
 
-is scalar vf2( $benzene, $phenanthroline, { vertex_correspondence_sub => $vertex_correspondence_sub } ), 12;
-is scalar vf2( $benzene, $phenanthrene, { vertex_correspondence_sub => $vertex_correspondence_sub } ), 36;
+is scalar matches( $benzene, $phenanthroline, { vertex_correspondence_sub => $vertex_correspondence_sub } ), 12;
+is scalar matches( $benzene, $phenanthrene, { vertex_correspondence_sub => $vertex_correspondence_sub } ), 36;
 
 # Require strict match of the chemical symbol
 $vertex_correspondence_sub = sub { $_[0]->{symbol} eq $_[1]->{symbol} };
 
-is scalar vf2( $benzene, $phenanthroline, { vertex_correspondence_sub => $vertex_correspondence_sub } ), 12;
-is scalar vf2( $benzene, $phenanthrene, { vertex_correspondence_sub => $vertex_correspondence_sub } ), 0;
+is scalar matches( $benzene, $phenanthroline, { vertex_correspondence_sub => $vertex_correspondence_sub } ), 12;
+is scalar matches( $benzene, $phenanthrene, { vertex_correspondence_sub => $vertex_correspondence_sub } ), 0;
 
 # Select all six-membered cycles
 
-is scalar vf2( $benzene, $phenanthroline ), 36;
-is scalar vf2( $benzene, $phenanthrene ), 36;
+is scalar matches( $benzene, $phenanthroline ), 36;
+is scalar matches( $benzene, $phenanthrene ), 36;
 
 my $any_vertex = Graph::Undirected->new;
 $any_vertex->add_vertex( 0 );
 
 $vertex_correspondence_sub = sub { $_[1]->{symbol} =~ /^[CN]$/i };
 
-is scalar vf2( $any_vertex, $phenanthroline, { vertex_correspondence_sub => $vertex_correspondence_sub } ), 14;
+is scalar matches( $any_vertex, $phenanthroline, { vertex_correspondence_sub => $vertex_correspondence_sub } ), 14;
