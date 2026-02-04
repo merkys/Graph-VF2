@@ -104,10 +104,12 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         // Create callback to print mappings
         correspondence_callback< graph_type, graph_type > callback(graph1, graph2, correspondence);
 
-        // Print out all subgraph isomorphism mappings between graph1 and graph2.
-        // Vertices and edges are assumed to be always equivalent.
-        vf2_subgraph_iso(graph1, graph2, callback, vertex_order_by_mult(graph1),
-            edges_equivalent(always_equivalent()).vertices_equivalent(vertex_comp));
+        // Get all subgraph isomorphism mappings between graph1 and graph2.
+        // Edges are assumed to be always equivalent.
+        vf2_subgraph_iso(graph1, graph2, callback,
+                         get(vertex_index, graph1), get(vertex_index, graph2),
+                         vertex_order_by_mult(graph1),
+                         always_equivalent(), vertex_comp);
 
         for (int i = 0; i < num_vertices1; ++i)
             free(corr_map[i]);
