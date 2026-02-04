@@ -62,15 +62,14 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         SV * vertex_map
     CODE:
         typedef property< edge_name_t, SV* > edge_property;
-        typedef property< vertex_name_t, SV*, property< vertex_index_t, int > > vertex_property;
+        typedef property< vertex_name_t, SV* > vertex_property;
         typedef adjacency_list< setS, vecS, undirectedS, vertex_property, edge_property > graph_type;
 
         // Build graph1
         int num_vertices1 = av_top_index((AV*) SvRV(vertices1)) + 1;
         graph_type graph1;
-        for (ssize_t i = 0; i < num_vertices1; i++) {
+        for (ssize_t i = 0; i < num_vertices1; i++)
             add_vertex( vertex_property(newSViv(1)), graph1 );
-        }
         for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges1)); i++) {
             AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges1), i, 0 )[0] );
             add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
@@ -80,9 +79,8 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         // Build graph2
         int num_vertices2 = av_top_index((AV*) SvRV(vertices2)) + 1;
         graph_type graph2;
-        for (ssize_t i = 0; i < num_vertices2; i++) {
+        for (ssize_t i = 0; i < num_vertices2; i++)
             add_vertex( vertex_property(newSViv(1)), graph2 );
-        }
         for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges2)); i++) {
             AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges2), i, 0 )[0] );
             add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
@@ -93,9 +91,8 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         for (int i = 0; i < num_vertices1; ++i) {
             corr_map[i] = (bool*)calloc(num_vertices2, sizeof(bool));
             AV * line = (AV*) SvRV( av_fetch( (AV*) SvRV(vertex_map), i, 0 )[0] );
-            for (int j = 0; j < num_vertices2; ++j) {
+            for (int j = 0; j < num_vertices2; ++j)
                 corr_map[i][j] = SvIV( av_fetch( line, j, 0 )[0] );
-            }
         }
 
         auto vertex_comp = make_property_map_perl(corr_map);
@@ -112,9 +109,8 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         vf2_subgraph_iso(graph1, graph2, callback, vertex_order_by_mult(graph1),
             edges_equivalent(always_equivalent()).vertices_equivalent(vertex_comp));
 
-        for (int i = 0; i < num_vertices1; ++i) {
+        for (int i = 0; i < num_vertices1; ++i)
             free(corr_map[i]);
-        }
         free(corr_map);
 
         AV* map = newAV();
