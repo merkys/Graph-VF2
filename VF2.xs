@@ -9,8 +9,8 @@ using namespace boost;
 #include "XSUB.h"
 
 template <typename CorrespondenceMap>
-struct property_map_perl {
-    property_map_perl(const CorrespondenceMap corr_map) :
+struct vertex_property_map {
+    vertex_property_map(const CorrespondenceMap corr_map) :
         m_corr_map(corr_map) {}
 
     template <typename ItemFirst, typename ItemSecond>
@@ -23,15 +23,15 @@ struct property_map_perl {
 };
 
 template <typename CorrespondenceMap>
-property_map_perl<CorrespondenceMap>
-make_property_map_perl
+vertex_property_map<CorrespondenceMap>
+make_vertex_property_map
 (const CorrespondenceMap corr_map) {
-    return (property_map_perl<CorrespondenceMap>(corr_map));
+    return (vertex_property_map<CorrespondenceMap>(corr_map));
 }
 
 template <typename Graph1, typename Graph2>
-struct print_callback {
-    print_callback(const Graph1& graph1, const Graph2& graph2, std::vector<int>& correspondence)
+struct correspondence_callback {
+    correspondence_callback(const Graph1& graph1, const Graph2& graph2, std::vector<int>& correspondence)
       : graph1_(graph1), graph2_(graph2), correspondence_(correspondence) {}
 
     template <typename CorrespondenceMap1To2,
@@ -95,14 +95,14 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
                 corr_map[i][j] = SvIV( av_fetch( line, j, 0 )[0] );
         }
 
-        auto vertex_comp = make_property_map_perl(corr_map);
+        auto vertex_comp = make_vertex_property_map(corr_map);
         // Edge predicate is unused - TODO
-        auto edge_comp = make_property_map_perl(corr_map);
+        auto edge_comp = make_vertex_property_map(corr_map);
 
         std::vector<int> correspondence;
 
         // Create callback to print mappings
-        print_callback< graph_type, graph_type > callback(graph1, graph2, correspondence);
+        correspondence_callback< graph_type, graph_type > callback(graph1, graph2, correspondence);
 
         // Print out all subgraph isomorphism mappings between graph1 and graph2.
         // Vertices and edges are assumed to be always equivalent.
