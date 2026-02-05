@@ -8,11 +8,11 @@ using namespace boost;
 #include "perl.h"
 #include "XSUB.h"
 
-// Handle vertex equivalence
+// Handle equivalence
 template <typename PropertyMapFirst, typename PropertyMapSecond>
-struct vertex_equivalence {
-    vertex_equivalence(const PropertyMapFirst property_map1,
-                       const PropertyMapSecond property_map2):
+struct equivalence {
+    equivalence(const PropertyMapFirst property_map1,
+                const PropertyMapSecond property_map2):
         m_property_map1(property_map1),
         m_property_map2(property_map2) {}
 
@@ -27,38 +27,11 @@ struct vertex_equivalence {
 };
 
 template <typename PropertyMapFirst, typename PropertyMapSecond>
-vertex_equivalence<PropertyMapFirst, PropertyMapSecond>
-    make_vertex_equivalence(const PropertyMapFirst property_map1,
-                            const PropertyMapSecond property_map2) {
+equivalence<PropertyMapFirst, PropertyMapSecond>
+    make_equivalence(const PropertyMapFirst property_map1,
+                     const PropertyMapSecond property_map2) {
 
-    return (vertex_equivalence<PropertyMapFirst, PropertyMapSecond>
-            (property_map1, property_map2));
-}
-
-// Handle edge equivalence
-template <typename PropertyMapFirst, typename PropertyMapSecond>
-struct edge_equivalence {
-    edge_equivalence(const PropertyMapFirst property_map1,
-                     const PropertyMapSecond property_map2):
-        m_property_map1(property_map1),
-        m_property_map2(property_map2) {}
-
-    template <typename ItemFirst, typename ItemSecond>
-    bool operator()(const ItemFirst item1, const ItemSecond item2) {
-        return get(m_property_map2, item2)[get(m_property_map1, item1)];
-    }
-
-    private:
-        const PropertyMapFirst m_property_map1;
-        const PropertyMapSecond m_property_map2;
-};
-
-template <typename PropertyMapFirst, typename PropertyMapSecond>
-edge_equivalence<PropertyMapFirst, PropertyMapSecond>
-    make_edge_equivalence(const PropertyMapFirst property_map1,
-                          const PropertyMapSecond property_map2) {
-
-    return (edge_equivalence<PropertyMapFirst, PropertyMapSecond>
+    return (equivalence<PropertyMapFirst, PropertyMapSecond>
             (property_map1, property_map2));
 }
 
@@ -140,8 +113,8 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map, edge_map)
                       graph2 );
         }
 
-        auto vertex_comp = make_vertex_equivalence(get(vertex_name, graph1), get(vertex_name, graph2));
-        auto edge_comp = make_edge_equivalence(get(edge_name, graph1), get(edge_name, graph2));
+        auto vertex_comp = make_equivalence(get(vertex_name, graph1), get(vertex_name, graph2));
+        auto edge_comp = make_equivalence(get(edge_name, graph1), get(edge_name, graph2));
 
         std::vector<int> correspondence;
 
