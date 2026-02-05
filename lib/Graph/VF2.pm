@@ -72,6 +72,9 @@ sub matches
     my $vertex_correspondence_sub = exists $options->{vertex_correspondence_sub}
                                          ? $options->{vertex_correspondence_sub}
                                          : sub { 1 };
+    my $edge_correspondence_sub   = exists $options->{edge_correspondence_sub}
+                                         ? $options->{edge_correspondence_sub}
+                                         : sub { 1 };
 
     my @vertices1 = $g1->vertices;
     my %vertices1 = map { $vertices1[$_] => $_ } 0..$#vertices1;
@@ -80,12 +83,19 @@ sub matches
     my %vertices2 = map { $vertices2[$_] => $_ } 0..$#vertices2;
     my @edges2    = map { [ $vertices2{$_->[0]}, $vertices2{$_->[1]} ] } $g2->edges;
 
-    my $map = [];
+    my $vertex_map = [];
     for my $vertex (@vertices2) {
-        push @$map, [ map { int $vertex_correspondence_sub->($_, $vertex) } @vertices1 ];
+        push @$vertex_map, [ map { int $vertex_correspondence_sub->($_, $vertex) } @vertices1 ];
+    }
+    my $edge_map = [];
+    for my $edge (@edges2) {
+        push @$edge_map, [ map { int $edge_correspondence_sub->( ( map { $vertices1[$_] } @$_ ),
+                                                                 ( map { $vertices2[$_] } @$edge) ) } @edges1 ];
     }
 
-    my $correspondence = _vf2( \@vertices1, \@edges1, \@vertices2, \@edges2, $map );
+    my $correspondence = _vf2( \@vertices1, \@edges1,
+                               \@vertices2, \@edges2,
+                               $vertex_map, $edge_map );
 
     my @matches;
     while (my @match = splice @$correspondence, 0, 2 * @vertices1) {

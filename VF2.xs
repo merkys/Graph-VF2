@@ -45,7 +45,7 @@ struct edge_equivalence {
 
     template <typename ItemFirst, typename ItemSecond>
     bool operator()(const ItemFirst item1, const ItemSecond item2) {
-        return 1;
+        return get(m_property_map2, item2)[get(m_property_map1, item1)];
     }
 
     private:
@@ -87,12 +87,13 @@ struct correspondence_callback {
 MODULE = Graph::VF2		PACKAGE = Graph::VF2
 
 SV *
-_vf2(vertices1, edges1, vertices2, edges2, vertex_map)
+_vf2(vertices1, edges1, vertices2, edges2, vertex_map, edge_map)
         SV * vertices1
         SV * edges1
         SV * vertices2
         SV * edges2
         SV * vertex_map
+        SV * edge_map
     CODE:
         typedef property< vertex_name_t, ssize_t> query_vertex_property;
         typedef property< vertex_name_t, bool*> target_vertex_property;
@@ -104,18 +105,21 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         // Build graph1
         query_graph graph1;
         int num_vertices1 = av_top_index((AV*) SvRV(vertices1)) + 1;
+        int num_edges1 = av_top_index((AV*) SvRV(edges1)) + 1;
         for (ssize_t i = 0; i < num_vertices1; i++)
             add_vertex( query_vertex_property(i), graph1 );
-        for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges1)); i++) {
+        for (ssize_t i = 0; i < num_edges1; i++) {
             AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges1), i, 0 )[0] );
             add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
                       SvIV( av_fetch( edge, 1, 0 )[0] ),
+                      query_edge_property(i),
                       graph1 );
         }
 
         // Build graph2
         target_graph graph2;
         int num_vertices2 = av_top_index((AV*) SvRV(vertices2)) + 1;
+        int num_edges2 = av_top_index((AV*) SvRV(edges2)) + 1;
         for (ssize_t i = 0; i < num_vertices2; i++) {
             AV * line = (AV*) SvRV( av_fetch( (AV*) SvRV(vertex_map), i, 0 )[0] );
             bool* vector = (bool*)calloc(num_vertices1, sizeof(bool));
@@ -124,10 +128,15 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
             }
             add_vertex( target_vertex_property(vector), graph2 );
         }
-        for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges2)); i++) {
+        for (ssize_t i = 0; i < num_edges2; i++) {
             AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges2), i, 0 )[0] );
+            AV * line = (AV*) SvRV( av_fetch( (AV*) SvRV(edge_map), i, 0 )[0] );
+            bool* vector = (bool*)calloc(num_edges1, sizeof(bool));
+            for (ssize_t j = 0; j < num_edges1; j++)
+                vector[j] = SvIV( av_fetch( line, j, 0 )[0] );
             add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
                       SvIV( av_fetch( edge, 1, 0 )[0] ),
+                      target_edge_property(vector),
                       graph2 );
         }
 
