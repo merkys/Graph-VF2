@@ -8,19 +8,59 @@ using namespace boost;
 #include "perl.h"
 #include "XSUB.h"
 
-template <typename CorrespondenceMap>
-struct vertex_property_map {
-    vertex_property_map(const CorrespondenceMap corr_map) :
-        m_corr_map(corr_map) {}
+// Handle vertex equivalence
+template <typename PropertyMapFirst, typename PropertyMapSecond>
+struct vertex_equivalence {
+    vertex_equivalence(const PropertyMapFirst property_map1,
+                       const PropertyMapSecond property_map2):
+        m_property_map1(property_map1),
+        m_property_map2(property_map2) {}
 
     template <typename ItemFirst, typename ItemSecond>
     bool operator()(const ItemFirst item1, const ItemSecond item2) {
-        return (m_corr_map[item1][item2]);
+        return get(m_property_map2, item2)[get(m_property_map1, item1)];
     }
 
     private:
-        const CorrespondenceMap m_corr_map;
+        const PropertyMapFirst m_property_map1;
+        const PropertyMapSecond m_property_map2;
 };
+
+template <typename PropertyMapFirst, typename PropertyMapSecond>
+vertex_equivalence<PropertyMapFirst, PropertyMapSecond>
+    make_vertex_equivalence(const PropertyMapFirst property_map1,
+                            const PropertyMapSecond property_map2) {
+
+    return (vertex_equivalence<PropertyMapFirst, PropertyMapSecond>
+            (property_map1, property_map2));
+}
+
+// Handle edge equivalence
+template <typename PropertyMapFirst, typename PropertyMapSecond>
+struct edge_equivalence {
+    edge_equivalence(const PropertyMapFirst property_map1,
+                     const PropertyMapSecond property_map2):
+        m_property_map1(property_map1),
+        m_property_map2(property_map2) {}
+
+    template <typename ItemFirst, typename ItemSecond>
+    bool operator()(const ItemFirst item1, const ItemSecond item2) {
+        return 1;
+    }
+
+    private:
+        const PropertyMapFirst m_property_map1;
+        const PropertyMapSecond m_property_map2;
+};
+
+template <typename PropertyMapFirst, typename PropertyMapSecond>
+edge_equivalence<PropertyMapFirst, PropertyMapSecond>
+    make_edge_equivalence(const PropertyMapFirst property_map1,
+                          const PropertyMapSecond property_map2) {
+
+    return (edge_equivalence<PropertyMapFirst, PropertyMapSecond>
+            (property_map1, property_map2));
+}
 
 template <typename Graph1, typename Graph2>
 struct correspondence_callback {
@@ -54,13 +94,18 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         SV * edges2
         SV * vertex_map
     CODE:
-        typedef adjacency_list< setS, vecS, undirectedS > graph_type;
+        typedef property< vertex_name_t, ssize_t> query_vertex_property;
+        typedef property< vertex_name_t, bool*> target_vertex_property;
+        typedef property< edge_name_t, ssize_t> query_edge_property;
+        typedef property< edge_name_t, bool*> target_edge_property;
+        typedef adjacency_list< setS, vecS, undirectedS, query_vertex_property, query_edge_property > query_graph;
+        typedef adjacency_list< setS, vecS, undirectedS, target_vertex_property, target_edge_property > target_graph;
 
         // Build graph1
+        query_graph graph1;
         int num_vertices1 = av_top_index((AV*) SvRV(vertices1)) + 1;
-        graph_type graph1;
         for (ssize_t i = 0; i < num_vertices1; i++)
-            add_vertex( graph1 );
+            add_vertex( query_vertex_property(i), graph1 );
         for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges1)); i++) {
             AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges1), i, 0 )[0] );
             add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
@@ -69,10 +114,16 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         }
 
         // Build graph2
+        target_graph graph2;
         int num_vertices2 = av_top_index((AV*) SvRV(vertices2)) + 1;
-        graph_type graph2;
-        for (ssize_t i = 0; i < num_vertices2; i++)
-            add_vertex( graph2 );
+        for (ssize_t i = 0; i < num_vertices2; i++) {
+            AV * line = (AV*) SvRV( av_fetch( (AV*) SvRV(vertex_map), i, 0 )[0] );
+            bool* vector = (bool*)calloc(num_vertices1, sizeof(bool));
+            for (ssize_t j = 0; j < num_vertices1; j++) {
+                vector[j] = SvIV( av_fetch( line, j, 0 )[0] );
+            }
+            add_vertex( target_vertex_property(vector), graph2 );
+        }
         for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges2)); i++) {
             AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges2), i, 0 )[0] );
             add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
@@ -80,33 +131,22 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
                       graph2 );
         }
 
-        bool** corr_map = (bool**)calloc(num_vertices1, sizeof(bool*));
-        for (int i = 0; i < num_vertices1; ++i) {
-            corr_map[i] = (bool*)calloc(num_vertices2, sizeof(bool));
-            AV * line = (AV*) SvRV( av_fetch( (AV*) SvRV(vertex_map), i, 0 )[0] );
-            for (int j = 0; j < num_vertices2; ++j)
-                corr_map[i][j] = SvIV( av_fetch( line, j, 0 )[0] );
-        }
-
-        auto vertex_comp = vertex_property_map<bool**>(corr_map);
-        // Edge predicate is unused - TODO
-        auto edge_comp = vertex_property_map<bool**>(corr_map);
+        auto vertex_comp = make_vertex_equivalence(get(vertex_name, graph1), get(vertex_name, graph2));
+        auto edge_comp = make_edge_equivalence(get(edge_name, graph1), get(edge_name, graph2));
 
         std::vector<int> correspondence;
 
         // Create callback to print mappings
-        correspondence_callback< graph_type, graph_type > callback(graph1, graph2, correspondence);
+        correspondence_callback< query_graph, target_graph > callback(graph1, graph2, correspondence);
 
         // Get all subgraph isomorphism mappings between graph1 and graph2.
         // Edges are assumed to be always equivalent.
         vf2_subgraph_iso(graph1, graph2, callback,
                          get(vertex_index, graph1), get(vertex_index, graph2),
                          vertex_order_by_mult(graph1),
-                         always_equivalent(), vertex_comp);
+                         edge_comp, vertex_comp);
 
-        for (int i = 0; i < num_vertices1; ++i)
-            free(corr_map[i]);
-        free(corr_map);
+        // TODO: Free the calloc'ed vectors
 
         AV* map = newAV();
 

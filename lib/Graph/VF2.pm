@@ -81,8 +81,8 @@ sub matches
     my @edges2    = map { [ $vertices2{$_->[0]}, $vertices2{$_->[1]} ] } $g2->edges;
 
     my $map = [];
-    for my $vertex (@vertices1) {
-        push @$map, [ map { int $vertex_correspondence_sub->($vertex, $_) } @vertices2 ];
+    for my $vertex (@vertices2) {
+        push @$map, [ map { int $vertex_correspondence_sub->($_, $vertex) } @vertices1 ];
     }
 
     my $correspondence = _vf2( \@vertices1, \@edges1, \@vertices2, \@edges2, $map );
