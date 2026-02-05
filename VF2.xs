@@ -61,30 +61,30 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
         SV * edges2
         SV * vertex_map
     CODE:
-        typedef property< edge_name_t, SV* > edge_property;
-        typedef property< vertex_name_t, SV* > vertex_property;
-        typedef adjacency_list< setS, vecS, undirectedS, vertex_property, edge_property > graph_type;
+        typedef adjacency_list< setS, vecS, undirectedS > graph_type;
 
         // Build graph1
         int num_vertices1 = av_top_index((AV*) SvRV(vertices1)) + 1;
         graph_type graph1;
         for (ssize_t i = 0; i < num_vertices1; i++)
-            add_vertex( vertex_property(newSViv(1)), graph1 );
+            add_vertex( graph1 );
         for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges1)); i++) {
             AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges1), i, 0 )[0] );
             add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
-                      SvIV( av_fetch( edge, 1, 0 )[0] ), graph1 );
+                      SvIV( av_fetch( edge, 1, 0 )[0] ),
+                      graph1 );
         }
 
         // Build graph2
         int num_vertices2 = av_top_index((AV*) SvRV(vertices2)) + 1;
         graph_type graph2;
         for (ssize_t i = 0; i < num_vertices2; i++)
-            add_vertex( vertex_property(newSViv(1)), graph2 );
+            add_vertex( graph2 );
         for (ssize_t i = 0; i <= av_top_index((AV*) SvRV(edges2)); i++) {
             AV * edge = (AV*) SvRV( av_fetch( (AV*) SvRV(edges2), i, 0 )[0] );
             add_edge( SvIV( av_fetch( edge, 0, 0 )[0] ),
-                      SvIV( av_fetch( edge, 1, 0 )[0] ), graph2 );
+                      SvIV( av_fetch( edge, 1, 0 )[0] ),
+                      graph2 );
         }
 
         bool** corr_map = (bool**)calloc(num_vertices1, sizeof(bool*));
