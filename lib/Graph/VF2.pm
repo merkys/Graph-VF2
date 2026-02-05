@@ -57,6 +57,13 @@ A subroutine reference used to evaluate the equality of vertices, called with C<
 Should return Perl true and false equivalents to signify match and non-match, accordingly.
 Unless provided, all vertices are treated as equal.
 
+=item C<edge_correspondence_sub>
+
+A subroutine reference used to evaluate the equality of edges, called with C<$v1> and C<$v2> from C<$g1>, and C<$v3> and C<$v4> from C<$g2>, accordingly.
+Edges are represented as pairs of vertices and are passed as a flat array.
+Should return Perl true and false equivalents to signify match and non-match, accordingly.
+Unless provided, all edges are treated as equal.
+
 =back
 
 =cut
