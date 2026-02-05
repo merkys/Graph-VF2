@@ -128,7 +128,13 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map, edge_map)
                          vertex_order_by_mult(graph1),
                          edge_comp, vertex_comp);
 
-        // TODO: Free the calloc'ed vectors
+        // Free the allocated memory
+        auto vertex_property_map = get(vertex_name, graph2);
+        auto edge_property_map = get(edge_name, graph2);
+        BGL_FORALL_VERTICES_T(vertex, graph2, target_graph)
+            free(vertex_property_map[vertex]);
+        BGL_FORALL_EDGES_T(edge, graph2, target_graph)
+            free(edge_property_map[edge]);
 
         AV* map = newAV();
 
