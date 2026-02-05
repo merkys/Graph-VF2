@@ -22,13 +22,6 @@ struct vertex_property_map {
         const CorrespondenceMap m_corr_map;
 };
 
-template <typename CorrespondenceMap>
-vertex_property_map<CorrespondenceMap>
-make_vertex_property_map
-(const CorrespondenceMap corr_map) {
-    return (vertex_property_map<CorrespondenceMap>(corr_map));
-}
-
 template <typename Graph1, typename Graph2>
 struct correspondence_callback {
     correspondence_callback(const Graph1& graph1, const Graph2& graph2, std::vector<int>& correspondence)
@@ -95,9 +88,9 @@ _vf2(vertices1, edges1, vertices2, edges2, vertex_map)
                 corr_map[i][j] = SvIV( av_fetch( line, j, 0 )[0] );
         }
 
-        auto vertex_comp = make_vertex_property_map(corr_map);
+        auto vertex_comp = vertex_property_map<bool**>(corr_map);
         // Edge predicate is unused - TODO
-        auto edge_comp = make_vertex_property_map(corr_map);
+        auto edge_comp = vertex_property_map<bool**>(corr_map);
 
         std::vector<int> correspondence;
 
